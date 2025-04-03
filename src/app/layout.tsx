@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import 'stream-chat-react/dist/css/v2/index.css'
 import './globals.css'
 import { Provider } from '../components/ui/provider'
 
