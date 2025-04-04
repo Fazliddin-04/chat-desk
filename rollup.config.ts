@@ -8,7 +8,7 @@ import packageJson from './package.json'
 
 const config = [
   {
-    input: 'src/index.ts', // Your main entry file
+    input: 'index.ts', // Your main entry file
     output: [
       {
         file: packageJson.main,
@@ -31,7 +31,6 @@ const config = [
       // Compile TypeScript
       typescript({
         tsconfig: './tsconfig.json',
-        exclude: ['**/__tests__/**', '**/*.test.ts', '**/*.test.tsx'],
       }),
 
       // Minify the output
@@ -42,7 +41,7 @@ const config = [
   },
   // Generate TypeScript declaration files
   {
-    input: 'src/index.ts',
+    input: 'index.ts',
     output: [{ file: 'dist/index.d.ts', format: 'es' }],
     plugins: [dts()],
   },

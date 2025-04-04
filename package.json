@@ -1,8 +1,9 @@
 {
   "name": "@fazlyddeen/chat-desk",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "description": "A custom chat widget integrated to Chatwoot",
   "private": false,
+  "main": "dist/index.js",
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -45,7 +46,6 @@
     "eslint-config-next": "15.2.4",
     "typescript": "^5"
   },
-  "main": "index.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Fazliddin-04/chat-desk.git"
