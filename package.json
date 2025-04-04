@@ -1,8 +1,18 @@
 {
   "name": "@fazlyddeen/chat-desk",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "description": "A custom chat widget integrated to Chatwoot",
   "private": false,
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "next": "15.2.4"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -22,7 +32,8 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-icons": "^5.5.0",
-    "rollup": "^2.79.2"
+    "rollup": "^4.39.0",
+    "rollup-plugin-dts": "^6.2.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

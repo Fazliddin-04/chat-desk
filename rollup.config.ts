@@ -1,24 +1,51 @@
 import resolve from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
-import terser from '@rollup/plugin-terser'
 import typescript from '@rollup/plugin-typescript'
+import terser from '@rollup/plugin-terser'
+import { dts } from 'rollup-plugin-dts'
 
-const config = {
-  input: './index.ts',
-  output: {
-    file: './dist/index.js',
-    format: 'esm',
-    sourcemap: true,
+import packageJson from './package.json'
+
+const config = [
+  {
+    input: 'src/index.ts', // Your main entry file
+    output: [
+      {
+        file: packageJson.main,
+        format: 'cjs',
+        sourcemap: true,
+      },
+      {
+        file: packageJson.module,
+        format: 'esm',
+        sourcemap: true,
+      },
+    ],
+    plugins: [
+      // Resolve node modules
+      resolve(),
+
+      // Convert CommonJS modules to ES6
+      commonjs(),
+
+      // Compile TypeScript
+      typescript({
+        tsconfig: './tsconfig.json',
+        exclude: ['**/__tests__/**', '**/*.test.ts', '**/*.test.tsx'],
+      }),
+
+      // Minify the output
+      terser(),
+    ],
+    // Mark these as external dependencies
+    external: ['react', 'react-dom', 'next'],
   },
-  plugins: [
-    typescript({
-      tsconfig: './tsconfig.json',
-    }),
-    resolve(),
-    commonjs(),
-    terser(),
-  ],
-  external: ['react', 'react-dom'],
-}
+  // Generate TypeScript declaration files
+  {
+    input: 'src/index.ts',
+    output: [{ file: 'dist/index.d.ts', format: 'es' }],
+    plugins: [dts()],
+  },
+]
 
 export default config
