@@ -1,4 +1,4 @@
-import getFormattedDiff from '@/utils/formattedDiff'
+import getFormattedDiff from '../../../utils/formattedDiff'
 import { Avatar, DataList, HStack, Stack, Text } from '@chakra-ui/react'
 import React, { useContext } from 'react'
 import { MdTimer } from 'react-icons/md'

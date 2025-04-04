@@ -1,8 +1,9 @@
 'use client'
 
 import { createContext } from 'react'
-import { IMessage, IUser } from '@/types'
-import { useChatwoot } from '@/hooks/useChatwoot'
+import { IMessage, IUser } from '../../../types'
+import { useChatwoot } from '../../../hooks/useChatwoot'
+import Widget from '..'
 
 interface IContext {
   ticket: {
@@ -69,6 +70,7 @@ const ChatProvider = ({
       }}
     >
       {children}
+      <Widget />
     </ChatContext.Provider>
   )
 }

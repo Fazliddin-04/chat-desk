@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import axios from 'axios'
 import { deleteCookie, getCookie, setCookie } from 'cookies-next/client'
-import { IMessage, IUser } from '@/types'
+import { IMessage, IUser } from '../types'
 
 interface ChatwootConfig {
   user?: IUser

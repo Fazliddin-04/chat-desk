@@ -1,4 +1,4 @@
-import { IMessage } from '@/types'
+import { IMessage } from '../../../types'
 import { Avatar, Box, HStack, Separator, Stack, Text } from '@chakra-ui/react'
 import React from 'react'
 import { LuBot } from 'react-icons/lu'
