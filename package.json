@@ -1,6 +1,6 @@
 {
   "name": "@fazlyddeen/chat-desk",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "A custom chat widget integrated to Chatwoot",
   "private": false,
   "scripts": {
