@@ -1,6 +1,6 @@
 {
   "name": "@fazlyddeen/chat-desk",
-  "version": "1.1.6",
+  "version": "1.1.7",
   "description": "A custom chat widget integrated to Chatwoot",
   "private": false,
   "main": "dist/index.js",
@@ -9,11 +9,6 @@
   "files": [
     "dist"
   ],
-  "peerDependencies": {
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "next": "15.2.4"
-  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
