@@ -4,13 +4,13 @@ import { ChatContext } from '../context'
 import { LuBot } from 'react-icons/lu'
 
 export default function Users() {
-  const { state } = useContext(ChatContext)
+  const { agent } = useContext(ChatContext)
 
   return (
     <AvatarGroup gap="0" spaceX="-3" size="xs">
-      <Avatar.Root colorPalette={state?.agent?.isAgent ? 'orange' : 'purple'}>
-        <Avatar.Fallback name={state?.agent?.name}>
-          {!state?.agent && <LuBot size="18px" />}
+      <Avatar.Root colorPalette={agent ? 'orange' : 'purple'}>
+        <Avatar.Fallback name={agent?.name}>
+          {!agent && <LuBot size="18px" />}
         </Avatar.Fallback>
         <Avatar.Image />
       </Avatar.Root>

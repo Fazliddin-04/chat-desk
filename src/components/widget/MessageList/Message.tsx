@@ -1,29 +1,19 @@
 import { IMessage } from '@/types'
-import {
-  Avatar,
-  Box,
-  Button,
-  HStack,
-  Separator,
-  Stack,
-  Text,
-} from '@chakra-ui/react'
+import { Avatar, Box, HStack, Separator, Stack, Text } from '@chakra-ui/react'
 import React from 'react'
 import { LuBot } from 'react-icons/lu'
 
 export default function Message({
   data,
-  onActionClick,
-}: {
+}: // onActionClick,
+{
   data: IMessage
-  onActionClick: (e: { text: string }) => void
+  onActionClick: (e: string) => void
 }) {
-  if (data.text) {
+  if (data.content) {
     return (
       <Stack
-        direction={
-          data?.user?.isBot || data?.user?.isAgent ? 'row' : 'row-reverse'
-        }
+        direction={data?.message_type === 0 ? 'row-reverse' : 'row'}
         mt={1}
         data-state="open"
         _open={{
@@ -34,46 +24,28 @@ export default function Message({
         <Avatar.Root
           size="xs"
           colorPalette={
-            data?.user?.isBot
-              ? 'purple'
-              : data?.user?.isAgent
+            data?.sender?.type === 'contact'
+              ? 'gray'
+              : data?.sender?.type === 'user'
               ? 'orange'
-              : 'gray'
+              : 'purple'
           }
         >
-          <Avatar.Fallback name={data?.user?.name}>
-            {data?.user?.isBot && <LuBot size="18px" />}
+          <Avatar.Fallback name={data?.sender?.name}>
+            {!data?.sender?.name && <LuBot size="18px" />}
           </Avatar.Fallback>
           <Avatar.Image />
         </Avatar.Root>
         <Stack maxW="230px" gap={1.5}>
           <Box
             p="3"
-            bg={
-              data?.user?.isBot || data?.user?.isAgent
-                ? 'gray.100'
-                : 'green.100'
-            }
+            bg={data?.sender?.type === 'contact' ? 'green.100' : 'gray.100'}
             rounded="lg"
           >
             <Text fontSize="xs" fontWeight={600} lineHeight={1.4}>
-              {data.text}
+              {data.content}
             </Text>
           </Box>
-          {data?.actions?.length && (
-            <Stack p="3" bg="gray.100" rounded="lg">
-              {data?.actions?.map((item) => (
-                <Button
-                  key={item?.text}
-                  bgColor="white"
-                  variant="outline"
-                  onClick={() => onActionClick(item)}
-                >
-                  {item?.text}
-                </Button>
-              ))}
-            </Stack>
-          )}
         </Stack>
       </Stack>
     )
@@ -94,10 +66,10 @@ export default function Message({
           </Text>{' '}
           <HStack>
             <Avatar.Root size="2xs" colorPalette="orange">
-              <Avatar.Fallback name={data?.user?.name} />
+              <Avatar.Fallback name={data?.sender?.name} />
               <Avatar.Image />
             </Avatar.Root>
-            <span>{data?.user?.name}</span>
+            <span>{data?.sender?.name}</span>
           </HStack>
         </HStack>
         <Separator flex="1" />

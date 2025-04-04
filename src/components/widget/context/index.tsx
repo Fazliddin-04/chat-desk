@@ -1,41 +1,69 @@
-import { createContext, useReducer } from 'react'
-import ChatReducer from './reducer'
-import { IChat } from '@/types'
-import useAgent from './useAgent'
+'use client'
 
-export const ChatContext = createContext<{
-  state: IChat
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  dispatch: (action: { type: string; payload: any }) => void
-}>({
-  state: {
-    title: '',
-    description: '',
-    status: 'new',
-    messages: [],
-    agent: null,
-    customer: null,
-  },
-  dispatch: () => {},
+import { createContext } from 'react'
+import { IMessage, IUser } from '@/types'
+import { useChatwoot } from '@/hooks/useChatwoot'
+
+interface IContext {
+  ticket: {
+    title: string
+    description: string
+    status: 'open' | 'resolved' | 'pending'
+  }
+  connectionStatus:
+    | 'disconnected'
+    | 'connecting'
+    | 'connected'
+    | 'error'
+    | 'unsupported'
+  agent: IUser | null
+  customer: IUser | null
+  messages: IMessage[]
+  sendMessage: (content: string) => void
+}
+
+export const ChatContext = createContext<IContext>({
+  ticket: { title: '', description: '', status: 'open' },
+  agent: null,
+  customer: null,
+  messages: [],
+  connectionStatus: 'disconnected',
+  sendMessage: () => {},
 })
 
-export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
-  const initialData: IChat = {
-    title: '',
-    description: '',
-    status: 'new',
-    messages: [],
-    agent: null,
-    customer: { name: 'Saidakbar' },
-  }
-
-  const [state, dispatch] = useReducer(ChatReducer, initialData)
-
-  useAgent(state, dispatch)
+const ChatProvider = ({
+  user,
+  inboxIdentifier,
+  children,
+}: {
+  user?: IUser
+  inboxIdentifier?: string
+  children: React.ReactNode
+}) => {
+  const {
+    agent,
+    customer,
+    messages,
+    connectionStatus,
+    ticketStatus,
+    sendMessage,
+  } = useChatwoot({ user, inboxIdentifier })
+  // useAgent(state, dispatch)
 
   return (
-    <ChatContext.Provider value={{ state, dispatch }}>
+    <ChatContext.Provider
+      value={{
+        ticket: { title: '', description: '', status: ticketStatus },
+        agent,
+        customer,
+        messages,
+        connectionStatus,
+        sendMessage,
+      }}
+    >
       {children}
     </ChatContext.Provider>
   )
 }
+
+export default ChatProvider

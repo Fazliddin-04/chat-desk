@@ -5,7 +5,7 @@ import Users from './Users'
 import { ChatContext } from '../context'
 
 export default function Header() {
-  const { state } = useContext(ChatContext)
+  const { ticket } = useContext(ChatContext)
 
   return (
     <HStack justify="space-between" px={3} py={4}>
@@ -13,7 +13,7 @@ export default function Header() {
         <IconButton aria-label="Back" variant="subtle" size="sm">
           <LuArrowLeft />
         </IconButton>
-        {state?.title ? (
+        {ticket?.title ? (
           <Box
             data-open="open"
             _open={{
@@ -23,10 +23,10 @@ export default function Header() {
             }}
           >
             <Heading size="md" lineHeight={1.4}>
-              {state?.title}
+              {ticket?.title}
             </Heading>
             <Text fontSize="sm" lineHeight={1}>
-              {state?.description}
+              {ticket?.description}
             </Text>
           </Box>
         ) : (

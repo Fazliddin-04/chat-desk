@@ -1,7 +1,7 @@
 {
   "name": "@fazlyddeen/chat-desk",
-  "version": "1.0.0",
-  "description": "A simple chat widget integrated to Slack",
+  "version": "1.1.0",
+  "description": "A custom chat widget integrated to Chatwoot",
   "private": false,
   "scripts": {
     "dev": "next dev",
@@ -14,6 +14,8 @@
     "@emotion/react": "^11.14.0",
     "@rollup/plugin-commonjs": "^28.0.3",
     "@rollup/plugin-node-resolve": "^16.0.1",
+    "axios": "^1.8.4",
+    "cookies-next": "^5.1.0",
     "next": "15.2.4",
     "next-themes": "^0.4.6",
     "react": "^19.0.0",

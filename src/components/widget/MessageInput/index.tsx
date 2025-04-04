@@ -18,41 +18,22 @@ import { MdTimer } from 'react-icons/md'
 
 export default function MessageInput() {
   const [message, setMessage] = useState('')
-  const { state, dispatch } = useContext(ChatContext)
+  const { agent, messages, ticket, sendMessage } = useContext(ChatContext)
 
-  const sendMessage = async (e: FormEvent) => {
+  const onSendMessage = async (e: FormEvent) => {
     e.preventDefault()
 
     setMessage('')
-    dispatch({ type: 'send_message', payload: { text: message, user: null } })
-
-    await fetch('/api/send-to-slack', {
-      method: 'POST',
-      body: JSON.stringify({
-        message: message,
-        ticketId: 'Support ticket',
-        quote: '',
-      }),
-    })
+    sendMessage(message)
   }
 
   const sendFeedback = async (e: FormEvent) => {
     e.preventDefault()
 
     setMessage('')
-    dispatch({ type: 'send_message', payload: { text: message, user: null } })
-
-    await fetch('/api/send-to-slack', {
-      method: 'POST',
-      body: JSON.stringify({
-        message: message,
-        ticketId: 'Support ticket',
-        quote: '',
-      }),
-    })
   }
 
-  if (state.status === 'closed') {
+  if (ticket?.status === 'resolved') {
     return (
       <Box
         as="form"
@@ -71,7 +52,7 @@ export default function MessageInput() {
             Summary talk with agent
           </Text>
           <DataList.Root fontWeight={500} flexDir="row" gap={16}>
-            {state?.agent && (
+            {agent && (
               <DataList.Item>
                 <DataList.ItemLabel color="gray.500">
                   Chat with
@@ -79,10 +60,10 @@ export default function MessageInput() {
                 <DataList.ItemValue>
                   <HStack>
                     <Avatar.Root size="2xs" colorPalette="orange">
-                      <Avatar.Fallback name={state?.agent?.name} />
+                      <Avatar.Fallback name={agent?.name} />
                       <Avatar.Image />
                     </Avatar.Root>
-                    <span>{state?.agent?.name}</span>
+                    <span>{agent?.name}</span>
                   </HStack>
                 </DataList.ItemValue>
               </DataList.Item>
@@ -109,16 +90,14 @@ export default function MessageInput() {
     )
   }
   return (
-    <Box as="form" px={3} pb={4} onSubmit={sendMessage}>
-      <Connecting
-        open={
-          state.status === 'open' && !state.agent
-            ? 'open'
-            : state.agent
-            ? 'closed'
-            : ''
-        }
-      />
+    <Box as="form" px={3} pb={4} onSubmit={onSendMessage}>
+      {messages?.length > 1 && (
+        <Connecting
+          open={
+            ticket?.status === 'open' && !agent ? 'open' : agent ? 'closed' : ''
+          }
+        />
+      )}
       <Stack pt={1} pb={3} gap={0} bgColor="gray.100" rounded="lg">
         <Input
           value={message}
