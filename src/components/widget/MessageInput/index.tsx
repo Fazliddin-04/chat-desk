@@ -1,45 +1,44 @@
 import {
-  Avatar,
+  Alert,
   Box,
   Button,
-  DataList,
   HStack,
   IconButton,
   Input,
   Stack,
-  Text,
 } from '@chakra-ui/react'
 import React, { FormEvent, useContext, useState } from 'react'
 import { FaPaperclip, FaSmile } from 'react-icons/fa'
 import Connecting from './Connecting'
 import { ChatContext } from '../context'
 import Feedback from './Feedback'
-import { MdTimer } from 'react-icons/md'
 
 export default function MessageInput() {
   const [message, setMessage] = useState('')
-  const { agent, messages, ticket, sendMessage } = useContext(ChatContext)
+  const [loading, setLoading] = useState(false)
+  const { connectionStatus, ticket, sendMessage } = useContext(ChatContext)
 
   const onSendMessage = async (e: FormEvent) => {
-    e.preventDefault()
+    if (loading) return
+    setLoading(true)
 
-    setMessage('')
-    sendMessage(message)
-  }
+    try {
+      e.preventDefault()
+      setMessage('')
 
-  const sendFeedback = async (e: FormEvent) => {
-    e.preventDefault()
-
-    setMessage('')
+      await sendMessage(message)
+    } catch (error) {
+      console.error('Error sending message:', error)
+    } finally {
+      setLoading(false)
+    }
   }
 
   if (ticket?.status === 'resolved') {
     return (
       <Box
-        as="form"
         px={3}
         pb={4}
-        onSubmit={sendFeedback}
         data-state="open"
         _open={{
           animationName: 'fade-in',
@@ -47,57 +46,26 @@ export default function MessageInput() {
           animationFillMode: 'forwards',
         }}
       >
-        <Stack border="1px solid" borderColor="border" p={3} rounded="md">
-          <Text fontWeight={500} color="gray.600">
-            Summary talk with agent
-          </Text>
-          <DataList.Root fontWeight={500} flexDir="row" gap={16}>
-            {agent && (
-              <DataList.Item>
-                <DataList.ItemLabel color="gray.500">
-                  Chat with
-                </DataList.ItemLabel>
-                <DataList.ItemValue>
-                  <HStack>
-                    <Avatar.Root size="2xs" colorPalette="orange">
-                      <Avatar.Fallback name={agent?.name} />
-                      <Avatar.Image />
-                    </Avatar.Root>
-                    <span>{agent?.name}</span>
-                  </HStack>
-                </DataList.ItemValue>
-              </DataList.Item>
-            )}
-            <DataList.Item>
-              <DataList.ItemLabel color="gray.500">
-                Chat duration
-              </DataList.ItemLabel>
-              <DataList.ItemValue>
-                <HStack>
-                  <Avatar.Root size="2xs">
-                    <Avatar.Fallback>
-                      <MdTimer size="14px" color="#555" />
-                    </Avatar.Fallback>
-                  </Avatar.Root>
-                  <span>12 mins 43 sec</span>
-                </HStack>
-              </DataList.ItemValue>
-            </DataList.Item>
-          </DataList.Root>
-        </Stack>
         <Feedback />
       </Box>
     )
+  } else if (connectionStatus === 'error') {
+    return (
+      <Alert.Root status="error">
+        <Alert.Indicator />
+        <Alert.Content>
+          <Alert.Title>Something went wrong</Alert.Title>
+          <Alert.Description>
+            The connection is poor with Chatwoot.
+          </Alert.Description>
+        </Alert.Content>
+      </Alert.Root>
+    )
   }
+
   return (
     <Box as="form" px={3} pb={4} onSubmit={onSendMessage}>
-      {messages?.length > 1 && (
-        <Connecting
-          open={
-            ticket?.status === 'open' && !agent ? 'open' : agent ? 'closed' : ''
-          }
-        />
-      )}
+      <Connecting open={connectionStatus == 'connecting' ? 'open' : 'closed'} />
       <Stack pt={1} pb={3} gap={0} bgColor="gray.100" rounded="lg">
         <Input
           value={message}
@@ -131,7 +99,14 @@ export default function MessageInput() {
               <FaPaperclip />
             </IconButton>
           </HStack>
-          <Button type="submit">Send</Button>
+          <Button
+            type="submit"
+            rounded="md"
+            loading={loading}
+            disabled={!message}
+          >
+            Send
+          </Button>
         </HStack>
       </Stack>
     </Box>

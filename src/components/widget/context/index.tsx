@@ -19,7 +19,9 @@ interface IContext {
   agent: IUser | null
   customer: IUser | null
   messages: IMessage[]
-  sendMessage: (content: string) => void
+  resetChat: () => void
+  sendMessage: (content: string) => Promise<boolean>
+  sendCSAT: (rating: number, message: string) => Promise<boolean>
 }
 
 export const ChatContext = createContext<IContext>({
@@ -28,7 +30,9 @@ export const ChatContext = createContext<IContext>({
   customer: null,
   messages: [],
   connectionStatus: 'disconnected',
-  sendMessage: () => {},
+  sendMessage: () => Promise.resolve(false),
+  resetChat: () => {},
+  sendCSAT: () => Promise.resolve(false),
 })
 
 const ChatProvider = ({
@@ -47,8 +51,9 @@ const ChatProvider = ({
     connectionStatus,
     ticketStatus,
     sendMessage,
+    sendCSAT,
+    resetChat,
   } = useChatwoot({ user, inboxIdentifier })
-  // useAgent(state, dispatch)
 
   return (
     <ChatContext.Provider
@@ -59,6 +64,8 @@ const ChatProvider = ({
         messages,
         connectionStatus,
         sendMessage,
+        sendCSAT,
+        resetChat,
       }}
     >
       {children}

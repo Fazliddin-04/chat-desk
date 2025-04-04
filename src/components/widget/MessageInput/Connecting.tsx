@@ -22,7 +22,7 @@ export default function Connecting({ open }: { open: string }) {
     >
       <Spinner color="colorPalette.600" borderWidth={3} />
       <Text fontWeight={600} color="gray.600" fontSize="sm">
-        Connecting with agent
+        Loading chat history
       </Text>
     </HStack>
   )

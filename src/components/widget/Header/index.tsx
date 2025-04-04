@@ -3,14 +3,35 @@ import React, { useContext } from 'react'
 import { LuArrowLeft } from 'react-icons/lu'
 import Users from './Users'
 import { ChatContext } from '../context'
+import Pattern from './Pattern'
 
-export default function Header() {
+export default function Header({
+  position,
+  onChangePosition,
+}: {
+  position: 'right' | 'left'
+  onChangePosition: (e: 'right' | 'left') => void
+}) {
   const { ticket } = useContext(ChatContext)
 
   return (
-    <HStack justify="space-between" px={3} py={4}>
+    <HStack
+      justify="space-between"
+      px={3}
+      py={4}
+      position="relative"
+      zIndex={1}
+    >
       <HStack>
-        <IconButton aria-label="Back" variant="subtle" size="sm">
+        <IconButton
+          aria-label="Back"
+          variant="subtle"
+          size="sm"
+          rotate={(position === 'left' ? 180 : 0) + 'deg'}
+          onClick={() =>
+            onChangePosition(position === 'right' ? 'left' : 'right')
+          }
+        >
           <LuArrowLeft />
         </IconButton>
         {ticket?.title ? (
@@ -34,6 +55,7 @@ export default function Header() {
         )}
       </HStack>
       <Users />
+      <Pattern />
     </HStack>
   )
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import axios from 'axios'
 import { deleteCookie, getCookie, setCookie } from 'cookies-next/client'
 import { IMessage, IUser } from '@/types'
@@ -29,6 +29,11 @@ interface ChatwootResponse {
   id?: string
 }
 
+interface ITicket {
+  uuid?: string
+  status: TicketStatus
+}
+
 type ConnectionStatus =
   | 'disconnected'
   | 'connecting'
@@ -48,16 +53,19 @@ export const useChatwoot = (config: ChatwootConfig = {}) => {
     inboxIdentifier = 'YmvFTNLN4oy2z7hbuUYcsAae',
     apiUrl = 'https://app.chatwoot.com/public/api/v1/',
     websocketUrl = 'ws://app.chatwoot.com/cable',
-    cookieExpiryDays = 30,
+    cookieExpiryDays = 7,
   } = config
 
   const [connectionStatus, setConnectionStatus] =
     useState<ConnectionStatus>('disconnected')
-  const [ticketStatus, setTicketStatus] = useState<TicketStatus>('open')
   const [messages, setMessages] = useState<IMessage[]>([])
   const [agent, setAgent] = useState<IUser | null>(null)
   const [customer, setCustomer] = useState<IUser | null>(null)
+  const [ticket, setTicket] = useState<ITicket>({
+    status: 'open',
+  })
 
+  const hasAgentRef = useRef(false)
   const socketRef = useRef<WebSocket | null>(null)
   const chatwootRef = useRef<ChatwootRef>({
     inboxIdentifier,
@@ -66,6 +74,74 @@ export const useChatwoot = (config: ChatwootConfig = {}) => {
     contactPubsubToken: null,
     contactConversation: null,
   })
+
+  // Handle WebSocket messages
+  const handleWebSocketMessage = useCallback(
+    (event: MessageEvent): void => {
+      try {
+        const json = JSON.parse(event.data)
+
+        if (
+          json.type === 'welcome' ||
+          json.type === 'ping' ||
+          json.type === 'confirm_subscription'
+        ) {
+          // Ignore these message types
+          return
+        } else if (json.message?.event === 'message.created') {
+          console.log('Message received:', json)
+
+          if (!hasAgentRef.current) {
+            const isAgent = json.message?.data?.meta?.sender?.type === 'user'
+            if (isAgent) {
+              console.log('Agent connected:', json.message?.data?.meta?.sender)
+              // Update agent state using the current data, not dependent on previous state
+              setAgent(json.message?.data?.meta?.sender)
+
+              hasAgentRef.current = true // Mark that we've set an agent
+            }
+          }
+          if (json.message.data.content) {
+            setMessages((prevMessages) => [...prevMessages, json.message.data])
+          }
+        } else if (json.message?.event === 'conversation.updated') {
+          if (!hasAgentRef.current) {
+            const isAgent = json.message?.data?.meta?.sender?.type === 'user'
+            if (isAgent) {
+              console.log('Agent connected:', json.message?.data?.meta?.sender)
+              setAgent(json.message?.data?.meta?.sender)
+
+              hasAgentRef.current = true // Mark that we've set an agent
+            }
+          }
+        } else if (json.message?.event === 'conversation.typing_on') {
+          if (!hasAgentRef.current) {
+            const isAgent = json.message?.data?.performer?.type === 'user'
+            if (isAgent) {
+              console.log('Agent connected:', json.message?.data?.performer)
+              setAgent(json.message?.data?.performer)
+
+              hasAgentRef.current = true // Mark that we've set an agent
+              setMessages((prevMessages) => [
+                ...prevMessages,
+                {
+                  id: 999,
+                  hasAgentConnected: true,
+                  content: '',
+                  sender: json.message?.data?.performer,
+                },
+              ])
+            }
+          }
+        } else {
+          console.log('Unhandled message type:', json)
+        }
+      } catch (error) {
+        console.error('Invalid JSON:', event.data, error)
+      }
+    },
+    [] // Remove agent from the dependency array
+  )
 
   // Connect to WebSocket
   useEffect(() => {
@@ -135,54 +211,6 @@ export const useChatwoot = (config: ChatwootConfig = {}) => {
     return () => clearInterval(interval)
   }, [])
 
-  // Handle WebSocket messages
-  const handleWebSocketMessage = (event: MessageEvent): void => {
-    try {
-      const json = JSON.parse(event.data)
-
-      if (
-        json.type === 'welcome' ||
-        json.type === 'ping' ||
-        json.type === 'confirm_subscription'
-      ) {
-        // Ignore these message types
-        return
-      } else if (json.message?.event === 'message.created') {
-        console.log('Message received:', json)
-        if (!agent) {
-          const isAgent = json.message?.data?.meta?.sender?.type === 'user'
-          if (isAgent) setAgent(json.message?.data?.meta?.sender)
-        }
-        if (json.message.data.content) {
-          setMessages((prevMessages) => [...prevMessages, json.message.data])
-        }
-      } else if (json.message?.event === 'conversation.updated') {
-        if (!agent) {
-          const isAgent = json.message?.data?.meta?.sender?.type === 'user'
-          if (isAgent) setAgent(json.message?.data?.meta?.sender)
-        }
-      } else if (json.message?.event === 'conversation.typing_on') {
-        const isAgent = json.message?.data?.performer?.type === 'user'
-        if (isAgent && !agent) {
-          setAgent(json.message?.data?.performer)
-          setMessages((prevMessages) => [
-            ...prevMessages,
-            {
-              id: 999,
-              hasAgentConnected: true,
-              content: '',
-              sender: json.message?.data?.performer,
-            },
-          ])
-        }
-      } else {
-        console.log('Unhandled message type:', json)
-      }
-    } catch (error) {
-      console.error('Invalid JSON:', event.data, error)
-    }
-  }
-
   // Setup contact
   const setupContact = async (): Promise<void> => {
     const savedIdentifier = getCookie('contactIdentifier')
@@ -238,13 +266,20 @@ export const useChatwoot = (config: ChatwootConfig = {}) => {
           `${chatwootRef.current.chatwootAPIUrl}inboxes/${chatwootRef.current.inboxIdentifier}/contacts/${chatwootRef.current.contactIdentifier}/conversations/${savedConversation}`
         )
 
-        setTicketStatus(response.data?.status)
+        setTicket({ uuid: response.data?.uuid, status: response.data?.status })
         setMessages(response.data?.messages)
 
-        const agent = response.data?.messages?.find(
+        const agentMsg = response.data?.messages?.find(
           (item: IMessage) => item?.sender?.type === 'user'
         )
-        if (agent) setAgent(agent)
+        const contactMsg = response.data?.messages?.find(
+          (item: IMessage) => item?.sender?.type === 'contact'
+        )
+        if (agentMsg.sender) {
+          setAgent(agentMsg.sender)
+          hasAgentRef.current = true // Mark that we've set an agent
+        }
+        if (contactMsg.sender) setCustomer(contactMsg.sender)
       } catch (error) {
         console.error('Failed to set up conversation:', error)
         throw error
@@ -306,6 +341,41 @@ export const useChatwoot = (config: ChatwootConfig = {}) => {
     }
   }
 
+  const sendCSAT = async (
+    rating: number,
+    message: string
+  ): Promise<boolean> => {
+    if (!rating || connectionStatus !== 'connected') {
+      return false
+    }
+
+    try {
+      if (!chatwootRef.current.contactConversation || !ticket.uuid) {
+        throw new Error('Conversation not initialized or completed')
+      }
+
+      await axios.put(
+        `${chatwootRef.current.chatwootAPIUrl}csat_survey/${ticket.uuid}`,
+        {
+          message: {
+            submitted_values: {
+              csat_survey_response: {
+                rating,
+                feedback_message: message,
+              },
+            },
+          },
+        },
+        { headers: { 'Content-Type': 'application/json' } }
+      )
+
+      return true
+    } catch (error) {
+      console.error('Failed to send message:', error)
+      return false
+    }
+  }
+
   // Reset cookies and state
   const resetChat = (): void => {
     deleteCookie('contactIdentifier')
@@ -324,14 +394,15 @@ export const useChatwoot = (config: ChatwootConfig = {}) => {
       window.location.reload()
     }
   }
-  console.log('hoook', { messages })
+
   return {
     agent,
     customer,
     connectionStatus,
-    ticketStatus,
+    ticketStatus: ticket.status,
     messages,
     sendMessage,
     resetChat,
+    sendCSAT,
   }
 }

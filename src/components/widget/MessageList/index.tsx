@@ -2,6 +2,7 @@ import { Badge, Center, For, Stack } from '@chakra-ui/react'
 import React, { useContext, useEffect, useRef } from 'react'
 import Message from './Message'
 import { ChatContext } from '../context'
+import Summary from './Summary'
 
 // const messages: IMessage[] = [
 //   {
@@ -32,7 +33,7 @@ export default function MessageList() {
   }, [messages.length, ticket?.status])
 
   return (
-    <Stack px={3} pb={5} flex={1} overflow="auto" ref={container}>
+    <Stack px={3} pb={3} flex={1} overflow="auto" ref={container}>
       <For each={messages}>
         {(item, index) => (
           <Message
@@ -42,13 +43,14 @@ export default function MessageList() {
           />
         )}
       </For>
-      <Center id="bottom" mt={3}>
+      <Center id="bottom" my={3}>
         {ticket?.status === 'resolved' && (
           <Badge variant="surface" size="lg" rounded="lg">
             Chat Closed
           </Badge>
         )}
       </Center>
+      <Summary />
     </Stack>
   )
 }

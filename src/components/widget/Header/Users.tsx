@@ -4,7 +4,7 @@ import { ChatContext } from '../context'
 import { LuBot } from 'react-icons/lu'
 
 export default function Users() {
-  const { agent } = useContext(ChatContext)
+  const { agent, customer } = useContext(ChatContext)
 
   return (
     <AvatarGroup gap="0" spaceX="-3" size="xs">
@@ -15,8 +15,8 @@ export default function Users() {
         <Avatar.Image />
       </Avatar.Root>
       <Avatar.Root>
-        <Avatar.Fallback />
-        <Avatar.Image />
+        <Avatar.Fallback name={customer?.name} />
+        <Avatar.Image src={customer?.avatar_url} />
       </Avatar.Root>
     </AvatarGroup>
   )

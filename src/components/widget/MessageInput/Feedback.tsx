@@ -1,6 +1,5 @@
-import React, { useState } from 'react'
+import React, { FormEvent, useContext, useState } from 'react'
 import {
-  Box,
   Button,
   EmptyState,
   Field,
@@ -13,28 +12,51 @@ import {
 } from '@chakra-ui/react'
 import { FaRegLaugh, FaRegSadTear, FaRegSmile } from 'react-icons/fa'
 import { BsChatLeftHeartFill } from 'react-icons/bs'
+import { ChatContext } from '../context'
 
 export default function Feedback() {
-  const [feedback, setFeedback] = useState({ text: '' })
+  const [cancelled, setCancelled] = useState(false)
   const [sent, setSent] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [message, setMessage] = useState('')
+  const [rating, setRating] = useState<string | null>('')
 
-  if (sent) {
+  const { sendCSAT, resetChat } = useContext(ChatContext)
+
+  const sendFeedback = async (e: FormEvent) => {
+    try {
+      e.preventDefault()
+      setLoading(true)
+
+      const result = await sendCSAT(Number(rating), message)
+
+      if (result) {
+        setSent(true)
+      }
+    } catch (error) {
+      console.error('Error sending feedback:', error)
+    } finally {
+      setLoading(false)
+      setMessage('')
+    }
+  }
+
+  if (cancelled) {
     return (
-      <Box
-        overflow="hidden"
-        animationName="fade-out, collapse-height"
-        animationTimingFunction="ease-in-out"
-        animationDuration="500ms"
-        animationDelay="1000ms"
-        animationFillMode="forwards"
-      >
+      <Button rounded="md" w="full" onClick={resetChat}>
+        Start new conversation
+      </Button>
+    )
+  } else if (sent) {
+    return (
+      <>
         <Stack
           border="1px solid"
           borderColor="border"
-          p={3}
           rounded="md"
           height="308px"
-          mt={3}
+          p={3}
+          mb={3}
         >
           <EmptyState.Root px={3}>
             <EmptyState.Content>
@@ -53,20 +75,26 @@ export default function Feedback() {
             </EmptyState.Content>
           </EmptyState.Root>
         </Stack>
-      </Box>
+        <Button rounded="md" w="full" onClick={resetChat}>
+          Start new conversation
+        </Button>
+      </>
     )
   }
 
   return (
     <Stack
+      as="form"
+      onSubmit={sendFeedback}
       border="1px solid"
       borderColor="border"
       p={3}
       rounded="md"
       height="308px"
-      mt={3}
     >
       <RadioCard.Root
+        value={rating}
+        onValueChange={(e) => setRating(e.value)}
         orientation="vertical"
         align="center"
         maxW="400px"
@@ -101,14 +129,20 @@ export default function Feedback() {
         <Textarea
           resize="none"
           fontWeight={500}
-          value={feedback.text}
+          value={message}
           placeholder="Fill the reason you rating"
-          onChange={(e) => setFeedback({ text: e.target.value })}
+          onChange={(e) => setMessage(e.target.value)}
         />
       </Field.Root>
       <HStack justify="flex-end" mt={3}>
-        <Button variant="outline">Cancel</Button>
-        <Button type="submit" onClick={() => setSent(true)}>
+        <Button
+          variant="outline"
+          rounded="md"
+          onClick={() => setCancelled(true)}
+        >
+          Cancel
+        </Button>
+        <Button type="submit" rounded="md" loading={loading} disabled={!rating}>
           Submit
         </Button>
       </HStack>
@@ -117,7 +151,7 @@ export default function Feedback() {
 }
 
 const items = [
-  { value: 'bad', title: 'Bad', icon: <FaRegSadTear /> },
-  { value: 'good', title: 'Good', icon: <FaRegSmile /> },
-  { value: 'amazing', title: 'Amazing', icon: <FaRegLaugh /> },
+  { value: '1', title: 'Bad', icon: <FaRegSadTear /> },
+  { value: '4', title: 'Good', icon: <FaRegSmile /> },
+  { value: '5', title: 'Amazing', icon: <FaRegLaugh /> },
 ]
